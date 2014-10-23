@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <title>PEP 3107 + mypy = Static Type Checking For Python</title>
+        <meta charset="utf-8" />
+
+
+        <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+        <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="/theme/gumby.css" />
+        <link rel="stylesheet" type="text/css" href="/theme/style.css" />
+        <link rel="stylesheet" type="text/css" href="/theme/pygment.css" />
+
+        <script src="/theme/js/libs/modernizr-2.6.2.min.js"></script>
+
+
+
+
+</head>
+
+<body id="index" class="home">
+
+
+    <div class="container">
+
+        <div class="row">
+
+          <header id="banner" class="body">
+                  <h1><a href="/">mgmechanics is blogging <strong></strong></a></h1>
+          </header><!-- /#banner -->
+
+            <div id="navigation" class="navbar row">
+              <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
+             
+              <ul class="columns">
+                <li><a href="/">Home</a></li>
+
+
+              </ul>
+            </div>
+
+<section id="content" class="body">
+
+   <div class="row">
+        <div class="eleven columns">
+
+
+            <header>
+              <h2 class="entry-title">
+                <a href="/pep-3107-mypy-static-type-checking-for-python.html" rel="bookmark"
+                   title="Permalink to PEP 3107 + mypy = Static Type Checking For Python">PEP 3107 + mypy = Static Type Checking For Python</a></h2>
+           
+            </header>
+            <footer class="post-info">
+              <abbr class="published" title="2014-10-23T21:15:00">
+                Do 23 Oktober 2014
+              </abbr>
+            </footer><!-- /.post-info -->
+            <div class="entry-content">
+              <div class="section" id="dynamic-vs-static-typing">
+<h2>Dynamic vs. Static typing</h2>
+<p>Sometimes, people discuss if static or dynamic typing is better. In my experience from my
+<a class="reference external" href="http://sourceforge.net/users/mgmechanics">own projects</a>,
+done in two different type systems Python (dynamic typing) and, Java (static typing),
+I found that effective programming is done best using both.</p>
+<div class="line-block">
+<div class="line">I use the <strong>static type system</strong> when modelling with classes. Any class represents an real-world object.</div>
+<div class="line">For example, each employee of a company has an id: employee_id</div>
+<div class="line">Each room where the company has its registered office also has an id: room_id</div>
+<div class="line">Now think of a function which keeps track between employees and rooms like this:</div>
+<div class="line">Peter -&gt; R4711</div>
+<div class="line">Hans -&gt; R4711</div>
+<div class="line">Alice -&gt; R4710</div>
+<div class="line"><br /></div>
+<div class="line">In real-world, think of ids as 8-digit numbers so you can't decide if it is an employee or a room:</div>
+<div class="line">1111.1111 -&gt; 1111.1113</div>
+<div class="line">1111.1112 -&gt; 1111.1114</div>
+<div class="line">2000.3000 -&gt; 3000.2000</div>
+<div class="line"><br /></div>
+</div>
+<p>Of course, tests should still reveal if we would link two rooms or two employees to each other.
+But static type checking can do a lot for me: At least inside of a project,
+I can make sure that I always use the function as intended before giving it to the test.
+Finding errors only reduces the costs! (I use Python3 with PEP 3107 annotations for this example).</p>
+<pre class="literal-block">
+class EmployeeId:
+    def __init__(self, id):
+        self.id = id
+
+class RoomId:
+    def __init__(self, id):
+        self.id = id
+
+def place_employee(employee_id: EmployeeId, room_id: RoomId) -&gt; None:
+    pass
+</pre>
+<p>In this example I want to use any object as id itself.
+Of course I could do with static typing i.e. by using generic typing (as in Java).
+But this a job I give to <strong>dynamic typing</strong>. So I save the effort for bothering with generics.
+Generics can really cause headaches!</p>
+<p>Back to the example above: I don't need to give up any safety.
+I would use a factory function which produces employee_ids and room_ids.
+Then I can control which objects are used as an id on a single point. This seems good enough for me.</p>
+<p>Other things where dynamic typing reduces the effort seems everything but modelling using classes.
+I never want to write a GUI using static typing - the effort can kill. I'm thinking about re-writing
+a library for automatic GUI testing (called <a class="reference external" href="http://sourceforge.net/projects/awtomat/">Awtomat</a>
+because I need heavy use of Java Generics but don't need the type system because
+when I'm just want to send a mouse click to any object I just want to do this what ever it is.</p>
+<p>Also I would use dynamic typing for importing and exporting data: When I need an object as string I
+do not care what it is. If I put a string from employee_id in a field meant for room_ids artful
+testing will reveal it.</p>
+</div>
+<div class="section" id="why-choose-between-dynamic-and-static-typing">
+<h2>Why choose between dynamic and static typing?</h2>
+<p>Until I discovered <a class="reference external" href="http://www.mypy-lang.org/">mypy</a> I would need to do my projects like
+<a class="reference external" href="http://sourceforge.net/projects/jdecisiontable">JDecisiontable</a> in two languages:</p>
+<p>1. pure Java for a library handling the domain-specific data and (business-)methods which relies heavily
+on static typing as shown in the example above (bundled in an own project like
+<a class="reference external" href="http://sourceforge.net/projects/jdtlib">JDecisiontableLib</a></p>
+<p>2. a dynamic language for writing the GUI, data im- and export and system tests;
+this would be done in a project like JDecisiontable which provides merely a GUI around the core
+of the application, JDecisiontableLib.</p>
+</div>
+<div class="section" id="using-only-python-thanks-to-pep-3107-and-mypy">
+<h2>Using only Python thanks to PEP 3107 and mypy!</h2>
+<p>Thanks to <a class="reference external" href="http://legacy.python.org/dev/peps/pep-3107/">PEP 3107 'Function Annotations'</a>
+and <a class="reference external" href="http://www.mypy-lang.org/">mypy</a> I can write all code in Python!</p>
+<p><strong>PEP 3107</strong> is a standard for Python which let us add some useful information to our python code,
+so-called Function Annotations.</p>
+<p><strong>mypy</strong> is a library/tool which uses these Function Annotations to provide type checking.
+The Python code altered such will run as usual. You don't need a special Python interpreter!</p>
+</div>
+<div class="section" id="trying-mypy">
+<h2>Trying mypy</h2>
+<p>The README.md file in the <a class="reference external" href="https://github.com/JukkaL/mypy">github repository for mypy</a> tells how to install mypy.</p>
+<ol class="arabic simple">
+<li>I setted up a virtual Python3 environment in a folder named <strong>test/venv_for_mypy/</strong></li>
+<li>I checked out the source code of mypy from the github repository in a folder named <strong>test/mypy/</strong></li>
+<li>I changed into test/mypy</li>
+<li>I executed <strong>../venv_for_mypy/bin/python setup.py install</strong> to install mypy in the virtual environment, so we don't need to change our system (and need no sudo)</li>
+<li>I created a simple Python script containing example code from mypy, <strong>test/fibtest.py</strong></li>
+<li>I changed back into folder <strong>test</strong></li>
+<li>Now I can use mypy to check fibtest.py: <strong>./venv_for_mypy/bin/python mypy/scripts/mypy fibtest.py</strong></li>
+</ol>
+<div class="line-block">
+<div class="line">This step wasn't easy to figure out how! If this would be my project you could run it just like</div>
+<div class="line"><strong>./venv_for_mypy/bin/python mypy fibtest.py</strong>!</div>
+<div class="line"><br /></div>
+</div>
+<p>The path <strong>./venv_for_mypy/bin/python</strong> calls the python interpreter from the virtual environment rather that one from you system.
+That one from your system wouldn't be useful because mypy isn't installed there.</p>
+<p>Given a fibtest.py like this it mourns:</p>
+<pre class="literal-block">
+from typing import Iterator
+
+def fib(n: int) -&gt; Iterator[int]:
+    a, b = 0, 1
+    while a &lt; n:
+        yield a
+        a, b = b, a+b
+
+[print(fib) for fib in fib(12)]
+</pre>
+<pre class="literal-block">
+fibtest.py, line 9: &quot;print&quot; does not return a value
+</pre>
+<p>Running it from folder test fibtest.py give us:</p>
+<pre class="literal-block">
+./venv_for_mypy/bin/python fibtest.py
+0
+1
+1
+2
+3
+5
+8
+</pre>
+<p>Let's make fibtest.py defective:</p>
+<pre class="literal-block">
+from typing import Iterator
+# should return Iterator[int]
+def fib(n: int) -&gt; Iterator[str]:
+    a, b = 0, 1
+    while a &lt; n:
+        yield a
+        a, b = b, a+b
+
+[print(fib) for fib in fib(12)]
+</pre>
+<p>Now it returns two messages:</p>
+<pre class="literal-block">
+fibtest.py: In function &quot;fib&quot;:
+fibtest.py, line 6: Incompatible types in yield (actual type &quot;int&quot;, expected type &quot;str&quot;)
+fibtest.py: At top level:
+fibtest.py, line 9: &quot;print&quot; does not return a value
+</pre>
+</div>
+<div class="section" id="what-will-pep-3107-mypy-give-to-me">
+<h2>What will PEP 3107 + mypy give to me</h2>
+<p>PEP 3107 + mypy takes away the need to use another language than Python to use static type checking.
+Now I can write everything in Python.</p>
+<p>Moreover, I can mix static type checking with dynamic typing even for a single function (see first example).</p>
+<p>I am no longer forced to use the Java ecosystem just because the core of my application needs static
+type checking. I see this on background that - as far as I know - Oracle Java for Microsoft(R) Windows(R)
+operation system is still installing browser plug-ins as of time of writing. (Although I prefer proudly
+Free Software, the (potential) users of my software often are not.)</p>
+</div>
+<div class="section" id="what-pep-3107-mypy-will-not-give">
+<h2>What PEP 3107 + mypy will not give</h2>
+<p>I used the term &quot;type checking&quot;. This is not the same as &quot;typing&quot;. Neither PEP 3107 nor mypy will
+give us static typing for Python. I don't miss it.</p>
+</div>
+
+            </div><!-- /.entry-content -->
+
+
+        </div><!-- /.eleven.columns -->
+
+<div class="three columns">
+
+<h4>Pages</h4>
+
+ <ul>
+  </ul>
+
+<h4>Categories</h4>
+<ul>
+		<li><a href="/category/python.html">Python</a></li>
+		<li><a href="/category/test.html">Test</a></li>
+</ul>
+
+
+<h4>Tags</h4>
+
+
+<nav class="widget">
+  <h4>Social</h4>
+  <ul>
+    <li><a href="http://mgmechanics.github.io">This blog</a></li>
+  </ul>
+</nav>
+
+</div> </div><!-- /.row -->
+
+
+</section>
+
+       </div><!-- /.row -->
+    </div><!-- /.container -->
+
+
+       <div class="container.nopad bg">
+
+    
+        <footer id="credits" class="row">
+          <div class="seven columns left-center">
+
+                   <address id="about" class="vcard body">
+                    Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                    which takes great advantage of <a href="http://python.org">Python</a>.
+                    <br />
+                    Based on the <a target="_blank" href="http://gumbyframework.com">Gumby Framework</a>
+                    </address>
+          </div>
+
+
+          <div class="seven columns">
+            <div class="row">
+              <ul class="socbtns">
+
+
+
+
+
+              </ul>
+            </div>
+          </div>
+        </footer>
+
+    </div>
+
+
+  <script src="/theme/js/libs/jquery-1.9.1.min.js"></script>
+  <script src="/theme/js/libs/gumby.min.js"></script>
+  <script src="/theme/js/plugins.js"></script>
+</body>
+</html>
